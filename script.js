@@ -1716,6 +1716,7 @@ editor.addEventListener( 'keydown', ( e ) => {
 
 /* 7️⃣ ナビゲーション・新規作成ボタン*/
 document.getElementById( 'go-trash' ).onclick = () => { location.hash = '#/trash'; closeSidebar(); }
+document.getElementById( 'go-list' ).onclick = () => { location.hash = '#/list'; closeSidebar(); }
 
 /* New memo button */
 document.getElementById( 'new-memo' ).onclick = async () => {
