@@ -607,6 +607,11 @@ async function loadMemos() {
 }
 
 function openPinModal( m ) {
+	// container を作る
+	const container = document.createElement( 'div' );
+	container.className = 'pin-modal-container';
+	container.style.zIndex = 10000; // ここを JS で変更すれば overlay も modal も連動
+
 	const overlay = document.createElement( 'div' );
 	overlay.className = 'modal-overlay';
 
@@ -647,14 +652,13 @@ function openPinModal( m ) {
 
 	btns.append( removeBtn, cancelBtn, okBtn );
 	modal.append( pinMassage, title, input, btns );
-	document.body.append( overlay, modal );
-
+	// container に overlay と modal を追加
+	container.append( overlay, modal );
+	document.body.append( container );
 	const close = () => {
-		overlay.remove();
-		modal.remove();
+		container.remove(); // CSS に合わせる
 	};
 
-	overlay.onclick = close;
 	cancelBtn.onclick = close;
 
 	okBtn.onclick = async () => {
@@ -695,15 +699,15 @@ function openPinModal( m ) {
 
 	btns.addEventListener( 'click', stop );
 	btns.addEventListener( 'touchstart', stop );
-	// 🔹 overlay：モーダルは閉じるが document へは行かせない
-	overlay.addEventListener( 'click', e => {
-		stop( e );
-		close();
-	} );
-	overlay.addEventListener( 'touchstart', e => {
-		stop( e );
-		close();
-	} );
+	// overlayクリックでモーダル閉じる
+	['click', 'touchstart', 'mousedown'].forEach(ev => {
+    overlay.addEventListener(ev, e => {
+        e.stopPropagation();
+        e.preventDefault();
+        container.remove();
+    });
+});
+
 }
 
 /* Trash表示 */
