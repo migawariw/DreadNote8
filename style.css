@@ -138,6 +138,7 @@ border-radius: 20px;
 font-size: 32px;
 background: #ffffff;
 transition: transform 0s ease, opacity 0s ease;
+display: none;
 }
 
 body.dark #sidebar-toggle {
