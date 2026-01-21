@@ -1334,7 +1334,7 @@ const embedHandlers = [//SNSリンクを判定して対応する埋め込みhtml
 	// Spotify
 {
   match: url =>
-    /open\.spotify\.com\/.*\/(track|album|playlist|artist|episode|show)\//i.test(url),
+    /open\.spotify\.com\/(track|album|playlist|artist|episode|show)\/[a-zA-Z0-9]+\/?/i.test(url),
 
   create: (m, url) => {
     const wrap = document.createElement('div');

@@ -561,13 +561,15 @@ max-width: calc(100% - 40px);
 margin: 0 auto;
 }
 
-/* .video,.twitter,.instagram,.tiktok{
+/* .video,.twitter,.instagram,.tiktok,.spotify{
 border: 5px red solid;
 }
 .video iframe,.twitter iframe,.tiktok iframe{
   border:#0071e3 5px solid;
 } */
-
+.spotify{
+  line-height: 0;
+}
 body.dark .spotify iframe{
   border-radius: 13px;
 
