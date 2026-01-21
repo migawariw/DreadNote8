@@ -823,6 +823,9 @@ async function showEditor( data ) {// dataからhtmlを表示する関数
 
 				wrap.innerHTML = '';
 				twttr.widgets.createTweet( tweetId, wrap, {
+					theme: darkOn ? 'dark' : 'light',
+					lang: 'ja',
+					align:'left'
 					// width: '100%'
 				} );
 			} );
