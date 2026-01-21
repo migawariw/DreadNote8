@@ -3,7 +3,7 @@ margin: 0;
 padding: 20px 20px 300px 20px;
 font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
 font-size: 1rem;
-background: #ffffff;
+background: #fcfcfd;
 color: #1c1c1e;
 max-width: 100%;
 overflow-x: hidden;
@@ -14,6 +14,7 @@ body,
 #editor {
 touch-action: manipulation;
 /* ダブルタップズームの制御 */
+  overflow-x: hidden;
 }
 
 .auth-loading {
@@ -108,13 +109,14 @@ top: 0;
 bottom: 0;
 width: 300px;
 height: 100dvh;
-background: #f9f9f9;
+background: #f4f5f7;
 box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
 transform: translateX(-100%);
 transition: transform 0.3s ease;
 overflow-y: auto;
 z-index: 1300;
 padding-right: 10px;
+padding-left: 10px;
 border-radius: 10px;
 box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
 }
@@ -122,7 +124,9 @@ box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
 body.dark #sidebar {
 background: #0c0c0c;
 }
-
+#sidebar {
+  overscroll-behavior: contain;
+}
 #sidebar.show {
 transform: translateX(0);
 }
@@ -130,7 +134,7 @@ transform: translateX(0);
 
 #sidebar-toggle {
 position: fixed;
-top: 0px;
+top: 10px;
 left: 10px;
 z-index: 1100;
 padding-top: 0;
@@ -157,12 +161,8 @@ top: 10px;
 left: 10px;
 z-index: 1100;
 padding-top: 0;
-background: #f9f9f9;
 }
 
-body.dark #sidebar-toggle2 {
-background: #000000;
-}
 
 #sidebar .flex-between {
 position: sticky;
@@ -170,7 +170,7 @@ top: 0;
 left: 0;
 right: 0;
 z-index: 10;
-background: #f9f9f9;
+background: inherit;
 padding-bottom: 0px;
 }
 
@@ -180,14 +180,15 @@ background: black;
 
 li {
 list-style: none;
-border-bottom: 1px solid #ddd;
+/* border-bottom: 1px solid #ddd; */
+border-radius: 16px;
 display: flex;
 justify-content: space-between;
 position: relative;
 user-select: none;
 cursor: default;
 flex-direction: column;
-padding: 8px 12px;
+padding: 6px 10px 3px 10px;
 /* paddingは最後に書く必要があるらしい*/
 }
 
@@ -203,14 +204,6 @@ color: inherit;
 z-index: 1;
 }
 
-li:hover {
-background: #fcfcfc;
-}
-
-body.dark li:hover {
-background: #101010;
-}
-
 li .memo-title {
 font-weight: 610;
 flex: 1;
@@ -221,12 +214,11 @@ margin-right: 8px;
 }
 
 #memo-list li.active {
-background-color: rgb(240, 240, 240);
-border-left: 4px solid #0071e3;
+background-color: rgba(0, 0, 0, 0.06);
 }
 
 body.dark #memo-list li.active {
-background-color: rgb(28, 28, 28);
+background-color: rgba(255, 255, 255, 0.06);
 }
 
 .date-span {
@@ -267,12 +259,12 @@ text-align: right;
 .menu-btn {
 font-size: 18px;
 padding: 6px 12px;
-border-radius: 6px;
+border-radius: 16px;
 user-select: none;
 line-height: 0;
 color: #666;
 z-index: 2;
-margin: -26px -10px -10px -10px;
+margin: -1.6em -10px -4px -0.55em;
 /* 見た目を上にずらす */
 border: none;
 cursor: pointer;
@@ -284,7 +276,7 @@ border-color: #333;
 }
 
 /* 触った時だけ枠が出る */
-.menu-btn:hover,
+/* .menu-btn:hover,
 .menu-btn:active {
 background: rgba(0, 0, 0, 0.025);
 }
@@ -292,8 +284,13 @@ background: rgba(0, 0, 0, 0.025);
 body.dark .menu-btn:hover,
 .menu-btn:active {
 background: rgba(255, 255, 255, 0.025);
+} */
+ .menu-btn.pressed {
+  background: rgba(0, 0, 0, 0.04);
 }
-
+ body.dark .menu-btn.pressed {
+  background: rgba(255, 255, 255, 0.04);
+}
 .memo-right {
 display: flex;
 justify-content: space-between;
@@ -301,52 +298,10 @@ width: 100%;
 line-height: 2;
 }
 
-.menu-popup {
-position: absolute;
-top: 35px;
-/* top: 100%; */
-right: -10px;
-background: #fff;
-border: 1px solid #ccc;
-padding: 6px 0;
-border-radius: 6px;
-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-display: none;
-z-index: 10;
-}
 
-body.dark .menu-popup {
-background: #1c1c1e;
-border-color: #333;
-}
-
-.menu-popup button {
-font-size: 17px;
-border-radius: 6px;
-width: auto;
-/* width: 100%; */
-text-align: left;
-padding: 8px 16px;
-background: none;
-border: none;
-cursor: pointer;
-}
-
-body.dark .menu-popup button {
-color: #f2f2f7;
-}
-
-.menu-popup button:hover {
-background: #eee;
-}
-
-body.dark .menu-popup button:hover {
-background: #333;
-}
 
 /* ===== フォントサイズポップアップ（ズレ防止） ===== */
 #font-size-popup {
-display: none;
 position: fixed;
 top: 56px;
 left: 20px;
@@ -355,31 +310,12 @@ font-size: 18px;
 /* ← bodyの影響を切る */
 line-height: 1;
 border: 1px solid #ccc;
-padding: 12px;
+padding: 20px;
 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 z-index: 10000;
-}
-
-/* ===== スライダー行（高さ完全固定） ===== */
-#font-slider-wrap {
-height: 80px;
-/* ← 絶対固定 */
-display: flex;
-align-items: center;
-gap: 12px;
-font-size: 16px;
-/* ← 継承遮断 */
-line-height: 1;
-overflow: hidden;
-}
-
-/* サイズ表示 */
-#font-size-value {
 font-size: 20px;
-line-height: 1;
-white-space: nowrap;
+opacity: 0.95;
 }
-
 /* ===== スライダー本体 ===== */
 #font-size-slider {
 width: 80%;
@@ -395,7 +331,9 @@ font-size: 1rem;
 line-height: 1.5;
 font-weight: 610;
 }
-
+#memo-list li {
+  scroll-margin-top: 110px; /* ヘッダー高さ */
+}
 h2 {
 display: block;
 font-size: 1.5em;
@@ -407,51 +345,31 @@ font-weight: bold;
 margin-left: 0;
 }
 
-#user-icon {
+#user-icon,#user-icon2 {
 /* position: absolute; */
-/* position: fixed; */
 z-index: 10000;
 background: transparent;
 width: 40px;
 height: 40px;
-/* top: 0px; */
-/* top: 10px; */
-right: calc((100% - 800px)/2 + 0px);
-/* 親の右端から16px */
-border-radius: 50%;
-cursor: pointer;
-}
-
-#user-icon2 {
-z-index: 10000;
-background: transparent;
-width: 40px;
-height: 40px;
-right: calc((100% - 800px)/2 + 0px);
-/* 親の右端から16px */
+right: calc((100% - 800px)/2 + 16px);
 border-radius: 50%;
 cursor: pointer;
 }
 
 /* モバイルなど画面幅 < 800px の場合は右端16px固定 */
-@media (max-width: 799px) {
-#user-icon {
+/* @media (max-width: 799px) {
+#user-icon,#user-icon2 {
 right: 0;
 }
+} */
+#view-home{
+  max-width: 800px;
 }
 
-@media (max-width: 799px) {
-#user-icon2 {
-right: 0;
-}
-}
-
-#user-menu {
+.menu-panel {
 position: absolute;
-/* position: fixed; */
 top: 70px;
 right: 0px;
-/* 親の右端から16px */
 background: #ffffff;
 border: 1px solid #ddd;
 border-radius: 8px;
@@ -461,41 +379,33 @@ white-space: nowrap;
 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 overflow: hidden;
 }
-
-/* モバイルなど画面幅 < 800px の場合は右端16px固定 */
-@media (max-width: 799px) {
-#user-menu {
-right: 0px;
-}
-}
-
-#user-menu button {
+.menu-panel button{
 display: block;
 width: 100%;
 padding: 10px 16px;
 color: #0071e3;
 background: none;
 border: none;
-text-align: left;
-font-size: 15px;
+font-size: 18px;
+text-align: right;
 }
-
-#user-menu button:hover {
-background: #f2f2f7;
+.menu-panel button:hover {
+background: #f1f5ff;
 z-index: 3;
 }
-
-body.dark #user-menu {
-background: #1c1c1e;
+body.dark .menu-panel {
+background: #131313;
 border-color: #333;
 }
-
-body.dark #user-menu button {
+body.dark .menu-panel button{
 color: #007fff;
 }
-
-body.dark #user-menu button:hover {
+body.dark .menu-panel button:hover {
 background: #24242e;
+}
+
+#sort-menu button.checked::before {
+    content: '✔ ';  /* チェックマークを表示 */
 }
 
 .logo-img {
@@ -530,10 +440,12 @@ z-index: 1000;
 right: calc((100% - 800px)/2 + 20px);
 }
 }
-
+#new-memo :hover{
+    opacity: 0.9;
+}
 #editor {
 min-height: 70vh;
-padding-top: 30px;
+padding-top: 35px;
 outline: none;
 white-space: pre-wrap;
 word-break: break-word;
@@ -581,11 +493,11 @@ color: #999;
 font-weight: normal;
 }
 
-/* youtubeとニコニコのみ */
+/* youtubeとニコニコのみ videoはただの入れ物*/
 .video {
 position: relative;
 width: 100%;
-padding-top: 56.25%;
+aspect-ratio: 16/9;
 margin: 12px 0;
 }
 
@@ -597,6 +509,15 @@ height: 100%;
 border: 0;
 margin: 0;
 z-index: 1200;
+}
+@media (orientation: landscape) and (min-aspect-ratio: 16/9) {
+.video {
+aspect-ratio: auto;
+height: 100vh;
+}
+.video iframe {
+height: 100vh;
+}
 }
 
 /* TikTok 用（縦長） */
@@ -625,17 +546,28 @@ padding: 0 !important;
 background: transparent !important;
 }
 
-body.spread .twitter {
-max-width: calc(100% - 40px);
-/* 左右padding分を引く */
-margin: 0 auto;
-/* 真ん中に寄せる */
+.twitter {
+  max-width: 550px;
+  width: 100%;
+  margin: 0 auto;
+  overflow-x: hidden;
+}
+.twitter iframe{
+  border-radius: 12px;
 }
 
 body.spread .instagram {
 max-width: calc(100% - 40px);
 margin: 0 auto;
 }
+
+/* .video,.twitter,.instagram,.tiktok{
+border: 5px red solid;
+}
+.video iframe,.twitter iframe,.tiktok iframe{
+  border:#0071e3 5px solid;
+} */
+
 
 /* container にまとめる */
 .pin-modal-container {
@@ -694,7 +626,14 @@ display: flex;
 gap: 8px;
 margin-top: 16px;
 }
+.pin-modal-container .pin-modal-buttons button:active {
+  transform: scale(0.95);
+  background-color: #ddd; /* 好きな色に変更可 */
+}
 
+body.dark .pin-modal-container .pin-modal-buttons button:active {
+  background-color: #333; /* ダークモード対応 */
+}
 .pin-modal-container .pin-modal-remove {
 margin-right: auto;
 color: red;
