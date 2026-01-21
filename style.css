@@ -568,7 +568,10 @@ border: 5px red solid;
   border:#0071e3 5px solid;
 } */
 
+body.dark .spotify iframe{
+  border-radius: 13px;
 
+}
 /* container にまとめる */
 .pin-modal-container {
     position: fixed;

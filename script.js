@@ -214,6 +214,7 @@ if (darkBtn) {
 			});
 		});
 	}
+	renderSpotifyEmbeds(editor);
 	};
 }
 // 初期状態を localStorage から取得
@@ -487,7 +488,7 @@ function createMemoElement( m, sortBy = currentSort ) {
 	// 内部 HTML
 	li.innerHTML = `
     <a href="#/editor/${m.id}" class="memo-link" style="position:absolute;inset:0;text-decoration:none;color:inherit;font-size:${savedSize}px;"></a>
-    <span class="memo-title">${favStar}${m.title || 'New Memo'}</span>
+    <span class="memo-title">${favStar}${m.title || 'New Note'}</span>
     <div class="memo-right" style="position:relative;">
       <span class="date-span">
         ${new Date( getMemoDisplayTime( m, sortBy ) ).toLocaleString( 'ja-JP', {
@@ -571,7 +572,7 @@ function createMemoElement( m, sortBy = currentSort ) {
 		await saveMeta();
 		loadMemos();
 		if ( location.hash === '#/trash' ) loadTrash();
-		showToast( `${m.title || 'New Memo'} was Moved to Trash` );
+		showToast( `${m.title || 'New Note'} was Moved to Trash` );
 		menuPopup.style.display = 'none';
 		if ( currentMemoId === m.id ) location.hash = '#/home';
 	};
@@ -601,7 +602,7 @@ function openPinModal( m ) {//時刻固定のモーダル
 
 	const title = document.createElement( 'h2' );
 	title.className = 'pin-modal-title';
-	title.textContent = m.title || 'New Memo';
+	title.textContent = m.title || 'New Note';
 
 	const input = document.createElement( 'input' );
 	input.className = 'pin-modal-input';
@@ -722,7 +723,7 @@ function loadTrash() {/* Trash表示 */
 
 			const titleSpan = document.createElement( 'span' );
 			titleSpan.className = 'memo-title';
-			titleSpan.textContent = m.title || 'New Memo';
+			titleSpan.textContent = m.title || 'New Note';
 			li.appendChild( titleSpan );
 
 			// 右側の操作領域
@@ -751,7 +752,7 @@ function loadTrash() {/* Trash表示 */
 				e.stopPropagation();
 				await updateMeta( m.id, { deleted: false } );
 				loadTrash();
-				showToast( `${m.title || 'New Memo'} was restored` );
+				showToast( `${m.title || 'New Note'} was restored` );
 				await loadMemos(); // メモ一覧も更新
 			};
 
@@ -775,7 +776,7 @@ function loadTrash() {/* Trash表示 */
 				metaCache.memos = metaCache.memos.filter( mm => mm.id !== m.id );
 				await saveMeta();
 				loadTrash();
-				showToast( `${m.title || 'New Memo'} was deleted permanently` );
+				showToast( `${m.title || 'New Note'} was deleted permanently` );
 			};
 
 			menuPopup.appendChild( delBtn );
@@ -839,6 +840,7 @@ async function showEditor( data ) {// dataからhtmlを表示する関数
 			} );
 		} );
 	}
+	renderSpotifyEmbeds(editor);
 	editor.style.fontSize = savedSize + 'px';
 
 	// カーソルを先頭に移動
@@ -1328,7 +1330,23 @@ const embedHandlers = [//SNSリンクを判定して対応する埋め込みhtml
 			wrap.dataset.url = url;
 			return wrap;
 		}
-	}
+	},
+	// Spotify
+{
+  match: url =>
+    /open\.spotify\.com\/.*\/(track|album|playlist|artist|episode|show)\//i.test(url),
+
+  create: (m, url) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'spotify';
+    wrap.dataset.url = url;
+
+    // 初期表示は URL テキストだけ
+    wrap.textContent = url;
+
+    return wrap;
+  }
+}
 ];
 function renderTwitterEmbeds( root = editor ) {
 	if ( !window.twttr ) return;
@@ -1351,6 +1369,45 @@ function renderTwitterEmbeds( root = editor ) {
 				} );
 			} );
 	} );
+}
+function getSpotifyHeight(url) {
+  if (url.includes('/track/')) return 152; // 単曲は固定
+  if (url.includes('/episode/')) return 232; // ポッドキャストエピソードは固定
+
+  return 400;
+}
+function makeSpotifyEmbedUrl(url, theme) {
+  const m = url.match(
+    /open\.spotify\.com\/(?:intl-[^/]+\/)?(track|album|playlist|artist|episode|show)\/([^?]+)/i
+  );
+  if (!m) return null;
+
+  const [, type, id] = m;
+  return `https://open.spotify.com/embed/${type}/${id}?theme=${theme}`;
+}
+function renderSpotifyEmbeds(root = document) {
+  root.querySelectorAll('.spotify[data-url]').forEach(wrap => {
+    const url = wrap.dataset.url;
+    const theme = document.body.classList.contains('dark') ? '0' : '1';
+
+    const embedUrl = makeSpotifyEmbedUrl(url, theme);
+    if (!embedUrl) {
+      console.warn('Spotify URL parse failed:', url);
+      return;
+    }
+		const height = getSpotifyHeight(url);
+
+    wrap.innerHTML = `
+      <iframe
+        src="${embedUrl}"
+        width="100%"
+				height="${height}"
+        frameborder="0"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy">
+      </iframe>
+    `;
+  });
 }
 async function handleSingleImagePaste( file, editor, range ) {
 	const originalSizeBytes = file.size;
@@ -1531,6 +1588,7 @@ editor.addEventListener( 'paste', async e => {//Pasteイベント
 		replaceRangeWithNodes( editor, range, nodes );
 	}
 	renderTwitterEmbeds( editor );
+	renderSpotifyEmbeds(editor);
 } );
 editor.addEventListener( 'copy', e => {
 	const sel = document.getSelection();
