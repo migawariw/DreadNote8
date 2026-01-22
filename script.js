@@ -1334,14 +1334,25 @@ const embedHandlers = [//SNSリンクを判定して対応する埋め込みhtml
 	// Spotify
 {
   match: url =>
-    /open\.spotify\.com\/(track|album|playlist|artist|episode|show)\/[a-zA-Z0-9]+\/?/i.test(url),
+    /open\.spotify\.com\/(?:[a-zA-Z0-9\-_]+\/)*?(track|album|playlist|artist|episode|show)\/([a-zA-Z0-9]+)/i.test(url),
 
   create: (m, url) => {
+    const regex = /open\.spotify\.com\/(?:[a-zA-Z0-9\-_]+\/)*?(track|album|playlist|artist|episode|show)\/([a-zA-Z0-9]+)/i;
+    const match = url.match(regex);
+
+    if (!match) return null;
+
+    const type = match[1];
+    const id = match[2];
+
+    // クリーンな URL を生成
+    const cleanUrl = `https://open.spotify.com/${type}/${id}`;
+
     const wrap = document.createElement('div');
     wrap.className = 'spotify';
-    wrap.dataset.url = url;
+    wrap.dataset.url = cleanUrl;
 
-    // 初期表示は URL テキストだけ
+    // 初期表示は元の URL テキストでも良い
     wrap.textContent = url;
 
     return wrap;
@@ -1373,6 +1384,10 @@ function renderTwitterEmbeds( root = editor ) {
 function getSpotifyHeight(url) {
   if (url.includes('/track/')) return 152; // 単曲は固定
   if (url.includes('/episode/')) return 232; // ポッドキャストエピソードは固定
+  if (url.includes('/playlist/')) return 600; // プレイリストは長く7曲分
+  if (url.includes('/album/')) return 400; // albumはシングルにも対応できるように4曲分
+  if (url.includes('/artist/')) return 475; // artistは5曲分
+  if (url.includes('/show/')) return 300; // artistは10曲分
 
   return 400;
 }
