@@ -1250,20 +1250,62 @@ function isSingleUrlLine( line ) {
 }
 const embedHandlers = [//SNSリンクを判定して対応する埋め込みhtml作る
 	// YouTube
+	// {
+	// 	match: url =>
+	// 		url.match( /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([\w-]+)/i ),
+	// 	create: ( m, url ) => {
+	// 		const wrap = document.createElement( 'div' );
+	// 		wrap.className = 'video'; // CSSの幅とpadding-topを使う
+	// 		const iframe = document.createElement( 'iframe' );
+	// 		iframe.src = `https://www.youtube-nocookie.com/embed/${m[1]}?rel=0&playsinline=1&vq=hd1080`;
+	// 		iframe.allowFullscreen = true;
+	// 		wrap.appendChild( iframe );
+	// 		wrap.dataset.url = url;
+	// 		return wrap;
+	// 	}
+	// },
 	{
-		match: url =>
-			url.match( /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([\w-]+)/i ),
-		create: ( m, url ) => {
-			const wrap = document.createElement( 'div' );
-			wrap.className = 'video'; // CSSの幅とpadding-topを使う
-			const iframe = document.createElement( 'iframe' );
-			iframe.src = `https://www.youtube-nocookie.com/embed/${m[1]}?rel=0&playsinline=1&vq=hd1080`;
-			iframe.allowFullscreen = true;
-			wrap.appendChild( iframe );
-			wrap.dataset.url = url;
-			return wrap;
-		}
-	},
+  match: url => {
+    // 個別動画 + Shorts + プレイリスト
+    const videoMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([\w-]+)/i);
+    const playlistMatch = url.match(/youtube\.com\/.*[?&]list=([\w-]+)/i);
+    if (videoMatch) return { type: 'video', id: videoMatch[1], url };
+    if (playlistMatch) return { type: 'playlist', id: playlistMatch[1], url };
+    return null;
+  },
+  create: (m, originalUrl) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'video';
+    const iframe = document.createElement('iframe');
+    iframe.allowFullscreen = true;
+
+    if (m.type === 'video') {
+      // 元URLのパラメータを抽出して nocookie 埋め込み用に再構築
+      const urlObj = new URL(originalUrl);
+      const params = new URLSearchParams(urlObj.search);
+
+      // vパラメータを確実にセット
+      params.set('rel', '0');
+      params.set('playsinline', '1');
+      params.set('vq', 'hd1080');
+
+      iframe.src = `https://www.youtube-nocookie.com/embed/${m.id}?${params.toString()}`;
+    } else if (m.type === 'playlist') {
+      // プレイリスト専用埋め込み
+      const urlObj = new URL(originalUrl);
+      const params = new URLSearchParams(urlObj.search);
+      params.set('rel', '0');
+      params.set('playsinline', '1');
+      params.set('vq', 'hd1080');
+
+      iframe.src = `https://www.youtube-nocookie.com/embed/videoseries?${params.toString()}`;
+    }
+
+    wrap.appendChild(iframe);
+    wrap.dataset.url = originalUrl;
+    return wrap;
+  }
+},
 	// X / Twitter
 	{
 		match: url =>
@@ -1364,7 +1406,32 @@ const embedHandlers = [//SNSリンクを判定して対応する埋め込みhtml
 
 			return wrap;
 		}
+	},
+	{
+	match: text => {
+		const t = text.trim();
+		return t.startsWith('<iframe') && t.endsWith('>');
+	},
+
+	create: (m, html) => {
+		const wrap = document.createElement('div');
+		wrap.className = 'embed';
+
+		const tmp = document.createElement('div');
+		tmp.innerHTML = html;
+
+		const iframe = tmp.querySelector('iframe');
+		// iframe側のサイズ指定を無効化
+		if (!iframe) return null;
+
+		// そのまま通す
+		wrap.appendChild(iframe);
+		wrap.dataset.type = 'iframe';
+		wrap.dataset.url = iframe.src;
+
+		return wrap;
 	}
+}
 ];
 function renderTwitterEmbeds( root = editor ) {
 	if ( !window.twttr ) return;
@@ -1519,7 +1586,6 @@ editor.addEventListener( 'paste', async e => {//Pasteイベント
 	const text = e.clipboardData?.getData( 'text/plain' ) || '';
 	const range = getCurrentRange();
 	if ( !range ) return;
-
 	/* ---- image only ---- */
 	const imageItems = [...items].filter( i => i.type.startsWith( 'image/' ) );
 	if ( imageItems.length === 1 && items.length === 1 ) {
@@ -1528,7 +1594,32 @@ editor.addEventListener( 'paste', async e => {//Pasteイベント
 		if ( file ) await handleSingleImagePaste( file, editor, range );
 		return;
 	}
+// ---- iframe paste（最優先）----
+if (pasteConfig.enableEmbed) {
+	const source =
+		e.clipboardData?.getData('text/html') ||
+		e.clipboardData?.getData('text/plain') ||
+		'';
 
+	if (source.includes('<iframe')) {
+		const tmp = document.createElement('div');
+		tmp.innerHTML = source;
+
+		const iframe = tmp.querySelector('iframe');
+		if (iframe) {
+			e.preventDefault();
+
+			const wrap = document.createElement('div');
+			wrap.className = 'embed';
+
+			// そのまま移植
+			wrap.appendChild(iframe);
+
+			replaceRangeWithNodes(editor, range, [wrap]);
+			return;
+		}
+	}
+}
 	e.preventDefault();
 
 	const lines = text.replace( /\r\n/g, '\n' ).split( '\n' );
