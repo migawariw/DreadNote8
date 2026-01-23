@@ -175,46 +175,53 @@ if ( savedSize ) {
 
 // 初期状態を localStorage から取得
 function getInitialDarkOn() {
-	const saved = localStorage.getItem('dreadnote-dark'); // '1' | '0' | null
+	const saved = localStorage.getItem( 'dreadnote-dark' ); // '1' | '0' | null
 
-	if (saved !== null) {
+	if ( saved !== null ) {
 		return saved === '1';
 	}
 
 	return window.matchMedia &&
-		window.matchMedia('(prefers-color-scheme: dark)').matches;
+		window.matchMedia( '(prefers-color-scheme: dark)' ).matches;
 }
 
 const darkOn = getInitialDarkOn();
-document.body.classList.toggle('dark', darkOn);
+document.body.classList.toggle( 'dark', darkOn );
+// ★追加
+document.documentElement.style.backgroundColor = darkOn ? '#000' : '';
+document.documentElement.style.colorScheme = darkOn ? 'dark' : '';
 
-if (darkBtn) {
+if ( darkBtn ) {
 	darkBtn.textContent = darkOn ? 'Light mode' : 'Dark mode';
 
-	darkBtn.onclick = (e) => {
+	darkBtn.onclick = ( e ) => {
 		e.stopPropagation();
 
-		const isOn = document.body.classList.toggle('dark');
-		localStorage.setItem('dreadnote-dark', isOn ? '1' : '0');
+		const isOn = document.body.classList.toggle( 'dark' );
+
+		// ★追加
+		document.documentElement.style.backgroundColor = isOn ? '#000' : '';
+		document.documentElement.style.colorScheme = isOn ? 'dark' : '';
+		localStorage.setItem( 'dreadnote-dark', isOn ? '1' : '0' );
 		darkBtn.textContent = isOn ? 'Light mode' : 'Dark mode';
 		// ② Twitter 再レンダリング
-	if (window.twttr) {
-		twttr.ready(() => {
-			editor.querySelectorAll('.twitter[data-url]').forEach(wrap => {
-				const url = wrap.dataset.url;
-				const tweetId = url.match(/status\/(\d+)/)?.[1];
-				if (!tweetId) return;
+		if ( window.twttr ) {
+			twttr.ready( () => {
+				editor.querySelectorAll( '.twitter[data-url]' ).forEach( wrap => {
+					const url = wrap.dataset.url;
+					const tweetId = url.match( /status\/(\d+)/ )?.[1];
+					if ( !tweetId ) return;
 
-				wrap.innerHTML = '';
-				twttr.widgets.createTweet(tweetId, wrap, {
-					theme: isOn ? 'dark' : 'light',
-					lang: 'ja',
-					align:'left'
-				});
-			});
-		});
-	}
-	renderSpotifyEmbeds(editor);
+					wrap.innerHTML = '';
+					twttr.widgets.createTweet( tweetId, wrap, {
+						theme: isOn ? 'dark' : 'light',
+						lang: 'ja',
+						align: 'left'
+					} );
+				} );
+			} );
+		}
+		renderSpotifyEmbeds( editor );
 	};
 }
 // 初期状態を localStorage から取得
@@ -834,13 +841,13 @@ async function showEditor( data ) {// dataからhtmlを表示する関数
 				twttr.widgets.createTweet( tweetId, wrap, {
 					theme: darkOn ? 'dark' : 'light',
 					lang: 'ja',
-					align:'left'
+					align: 'left'
 					// width: '100%'
 				} );
 			} );
 		} );
 	}
-	renderSpotifyEmbeds(editor);
+	renderSpotifyEmbeds( editor );
 	editor.style.fontSize = savedSize + 'px';
 
 	// カーソルを先頭に移動
@@ -1332,32 +1339,32 @@ const embedHandlers = [//SNSリンクを判定して対応する埋め込みhtml
 		}
 	},
 	// Spotify
-{
-  match: url =>
-    /open\.spotify\.com\/(?:[a-zA-Z0-9\-_]+\/)*?(track|album|playlist|artist|episode|show)\/([a-zA-Z0-9]+)/i.test(url),
+	{
+		match: url =>
+			/open\.spotify\.com\/(?:[a-zA-Z0-9\-_]+\/)*?(track|album|playlist|artist|episode|show)\/([a-zA-Z0-9]+)/i.test( url ),
 
-  create: (m, url) => {
-    const regex = /open\.spotify\.com\/(?:[a-zA-Z0-9\-_]+\/)*?(track|album|playlist|artist|episode|show)\/([a-zA-Z0-9]+)/i;
-    const match = url.match(regex);
+		create: ( m, url ) => {
+			const regex = /open\.spotify\.com\/(?:[a-zA-Z0-9\-_]+\/)*?(track|album|playlist|artist|episode|show)\/([a-zA-Z0-9]+)/i;
+			const match = url.match( regex );
 
-    if (!match) return null;
+			if ( !match ) return null;
 
-    const type = match[1];
-    const id = match[2];
+			const type = match[1];
+			const id = match[2];
 
-    // クリーンな URL を生成
-    const cleanUrl = `https://open.spotify.com/${type}/${id}`;
+			// クリーンな URL を生成
+			const cleanUrl = `https://open.spotify.com/${type}/${id}`;
 
-    const wrap = document.createElement('div');
-    wrap.className = 'spotify';
-    wrap.dataset.url = cleanUrl;
+			const wrap = document.createElement( 'div' );
+			wrap.className = 'spotify';
+			wrap.dataset.url = cleanUrl;
 
-    // 初期表示は元の URL テキストでも良い
-    wrap.textContent = url;
+			// 初期表示は元の URL テキストでも良い
+			wrap.textContent = url;
 
-    return wrap;
-  }
-}
+			return wrap;
+		}
+	}
 ];
 function renderTwitterEmbeds( root = editor ) {
 	if ( !window.twttr ) return;
@@ -1375,44 +1382,44 @@ function renderTwitterEmbeds( root = editor ) {
 				twttr.widgets.createTweet( tweetId, wrap, {
 					theme: darkOn ? 'dark' : 'light',
 					lang: 'ja',
-					align:'left'
+					align: 'left'
 					// width: '100%'
 				} );
 			} );
 	} );
 }
-function getSpotifyHeight(url) {
-  if (url.includes('/track/')) return 152; // 単曲は固定
-  if (url.includes('/episode/')) return 232; // ポッドキャストエピソードは固定
-  if (url.includes('/playlist/')) return 600; // プレイリストは長く7曲分
-  if (url.includes('/album/')) return 400; // albumはシングルにも対応できるように4曲分
-  if (url.includes('/artist/')) return 475; // artistは5曲分
-  if (url.includes('/show/')) return 300; // artistは10曲分
+function getSpotifyHeight( url ) {
+	if ( url.includes( '/track/' ) ) return 152; // 単曲は固定
+	if ( url.includes( '/episode/' ) ) return 232; // ポッドキャストエピソードは固定
+	if ( url.includes( '/playlist/' ) ) return 600; // プレイリストは長く7曲分
+	if ( url.includes( '/album/' ) ) return 400; // albumはシングルにも対応できるように4曲分
+	if ( url.includes( '/artist/' ) ) return 475; // artistは5曲分
+	if ( url.includes( '/show/' ) ) return 300; // artistは10曲分
 
-  return 400;
+	return 400;
 }
-function makeSpotifyEmbedUrl(url, theme) {
-  const m = url.match(
-    /open\.spotify\.com\/(?:intl-[^/]+\/)?(track|album|playlist|artist|episode|show)\/([^?]+)/i
-  );
-  if (!m) return null;
+function makeSpotifyEmbedUrl( url, theme ) {
+	const m = url.match(
+		/open\.spotify\.com\/(?:intl-[^/]+\/)?(track|album|playlist|artist|episode|show)\/([^?]+)/i
+	);
+	if ( !m ) return null;
 
-  const [, type, id] = m;
-  return `https://open.spotify.com/embed/${type}/${id}?theme=${theme}`;
+	const [, type, id] = m;
+	return `https://open.spotify.com/embed/${type}/${id}?theme=${theme}`;
 }
-function renderSpotifyEmbeds(root = document) {
-  root.querySelectorAll('.spotify[data-url]').forEach(wrap => {
-    const url = wrap.dataset.url;
-    const theme = document.body.classList.contains('dark') ? '0' : '1';
+function renderSpotifyEmbeds( root = document ) {
+	root.querySelectorAll( '.spotify[data-url]' ).forEach( wrap => {
+		const url = wrap.dataset.url;
+		const theme = document.body.classList.contains( 'dark' ) ? '0' : '1';
 
-    const embedUrl = makeSpotifyEmbedUrl(url, theme);
-    if (!embedUrl) {
-      console.warn('Spotify URL parse failed:', url);
-      return;
-    }
-		const height = getSpotifyHeight(url);
+		const embedUrl = makeSpotifyEmbedUrl( url, theme );
+		if ( !embedUrl ) {
+			console.warn( 'Spotify URL parse failed:', url );
+			return;
+		}
+		const height = getSpotifyHeight( url );
 
-    wrap.innerHTML = `
+		wrap.innerHTML = `
       <iframe
         src="${embedUrl}"
         width="100%"
@@ -1422,7 +1429,7 @@ function renderSpotifyEmbeds(root = document) {
         loading="lazy">
       </iframe>
     `;
-  });
+	} );
 }
 async function handleSingleImagePaste( file, editor, range ) {
 	const originalSizeBytes = file.size;
@@ -1603,7 +1610,7 @@ editor.addEventListener( 'paste', async e => {//Pasteイベント
 		replaceRangeWithNodes( editor, range, nodes );
 	}
 	renderTwitterEmbeds( editor );
-	renderSpotifyEmbeds(editor);
+	renderSpotifyEmbeds( editor );
 } );
 editor.addEventListener( 'copy', e => {
 	const sel = document.getSelection();
