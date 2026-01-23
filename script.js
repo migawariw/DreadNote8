@@ -503,7 +503,7 @@ function createMemoElement( m, sortBy = currentSort ) {
 	} )}
         ${pinMark}
       </span>
-      <span class="size-span ${isLargeSize( m.size ) ? 'size-warning' : ''}">${formatSize( m.size || 0 )}</span>
+      <span class="size-span ${isLargeSize( m.size ) ? 'size-warning' : ''}" hidden>${formatSize( m.size || 0 )}</span>
       <button class="menu-btn">　　⁝</button>
       <div class="menu-panel" style="top:2em;right:-12px;">
         <button class="fav-btn">${m.favorite ? '★ お気に入り解除' : '　　☆ お気に入り'}</button>
