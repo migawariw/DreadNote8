@@ -1210,6 +1210,85 @@ editor.addEventListener( 'keydown', e => {
 		document.execCommand( 'italic' ); // 選択中をイタリックに
 	}
 } );
+let isComposing = false;
+
+editor.addEventListener('compositionstart', () => {
+	isComposing = true;
+});
+
+editor.addEventListener('compositionend', () => {
+	isComposing = false;
+	handleKeywords();
+});
+
+editor.addEventListener('input', () => {
+	if (!isComposing) handleKeywords();
+});
+
+function handleKeywords() {
+	const sel = document.getSelection();
+	if (!sel.rangeCount) return;
+
+	const range = sel.getRangeAt(0);
+	const node = range.startContainer;
+	const offset = range.startOffset;
+
+	if (node.nodeType !== 3) return;
+
+	const text = node.textContent;
+
+	const now = new Date();
+	const weeks = ['日', '月', '火', '水', '木', '金', '土'];
+
+	const rules = [
+		{
+			key: 'じこく',
+			value: () =>
+				`${now.getMonth() + 1}月${now.getDate()}日(${weeks[now.getDay()]})` +
+				` ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+		},
+		{
+			key: 'いま',
+			value: () =>
+				`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+		},
+		{
+			key: 'きょう',
+			value: () =>
+				`${String(now.getMonth() + 1)}月${String(now.getDate()).padStart(2, '0')}日(${weeks[now.getDay()]})`
+		},
+		{
+			key: 'ようび',
+			value: () => weeks[now.getDay()]
+		},
+		{
+			key: 'つき',
+			value: () => `${now.getMonth() + 1}月`
+		}
+	];
+
+	for (const rule of rules) {
+		const len = rule.key.length;
+		if (text.slice(offset - len, offset) !== rule.key) continue;
+
+		// 削除
+		node.deleteData(offset - len, len);
+
+		// 挿入
+		const insertNode = document.createTextNode(rule.value());
+		range.insertNode(insertNode);
+
+		// カーソル移動
+		range.setStartAfter(insertNode);
+		range.collapse(true);
+		sel.removeAllRanges();
+		sel.addRange(range);
+
+		editor.dispatchEvent(new Event('input', { bubbles: true }));
+		break;
+	}
+}
+
 const pasteConfig = {/* ここからPaste*/
 	enableUrlLink: true,
 	enableEmbed: true
