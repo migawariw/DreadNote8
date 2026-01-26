@@ -175,7 +175,7 @@ padding-bottom: 0px;
 }
 
 body.dark #sidebar .flex-between {
-background: black;
+/* background: black; */
 }
 
 li {
@@ -347,7 +347,7 @@ margin-left: 0;
 
 #user-icon,#user-icon2 {
 /* position: absolute; */
-z-index: 10000;
+z-index: 1000;
 background: transparent;
 width: 40px;
 height: 40px;
